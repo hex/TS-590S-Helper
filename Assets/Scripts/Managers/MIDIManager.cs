@@ -7,13 +7,12 @@ using UnityEngine;
 
 public class MIDIManager : Singleton<MIDIManager>
 {
-    private const int SysExBufferSize = 128;
     private InputDevice _inputDevice = null;
     private OutputDevice _outputDevice = null;
     private SynchronizationContext _context;
 
     [SerializeField]
-    private Dictionary<int, string> activeCommands = new Dictionary<int, string>();
+    private Dictionary<DJControllerControl, string> _activeCommands = new Dictionary<DJControllerControl, string>();
 
     public string GetDeviceName()
     {
@@ -31,18 +30,23 @@ public class MIDIManager : Singleton<MIDIManager>
         if (InputDevice.DeviceCount == 0)
         {
             Log.Error("No MIDI input devices available");
+            AppManager.Instance.PushToLog("No MIDI input devices available", AppManager.LogType.Error);
         }
         else
         {
             try
             {
                 _context = SynchronizationContext.Current;
-                _inputDevice = new InputDevice(AppManager.Instance.Settings["MIDI Input Device ID"].IntValue);
+                var deviceId = AppManager.Instance.Settings["MIDI Input Device ID"].IntValue;
+                _inputDevice = new InputDevice(deviceId);
+                AppManager.Instance.PushToLog("Connected to " + InputDevice.GetDeviceCapabilities(deviceId).name,
+                    AppManager.LogType.Info);
                 _inputDevice.ChannelMessageReceived += HandleChannelMessageReceived;
                 _inputDevice.StartRecording();
             }
             catch (Exception ex)
             {
+                AppManager.Instance.PushToLog(ex.Message, AppManager.LogType.Error);
                 throw new ApplicationException("Error: " + ex);
             }
         }
@@ -50,30 +54,36 @@ public class MIDIManager : Singleton<MIDIManager>
         if (OutputDevice.DeviceCount == 0)
         {
             Log.Error("No MIDI output devices available");
+            AppManager.Instance.PushToLog("No MIDI output devices available", AppManager.LogType.Error);
         }
         else
         {
             try
             {
                 _context = SynchronizationContext.Current;
-                _outputDevice = new OutputDevice(AppManager.Instance.Settings["MIDI Output Device ID"].IntValue);
+                var deviceId = AppManager.Instance.Settings["MIDI Output Device ID"].IntValue;
+                _outputDevice = new OutputDevice(deviceId);
+                AppManager.Instance.PushToLog("Using output device: " +
+                                              OutputDevice.GetDeviceCapabilities(deviceId).name,
+                    AppManager.LogType.Info);
                 Greet();
             }
             catch (Exception ex)
             {
+                AppManager.Instance.PushToLog(ex.Message, AppManager.LogType.Error);
                 throw new ApplicationException("Error: " + ex);
             }
         }
     }
 
-    private void WriteOut(int[] data, bool on = true)
+    private void WriteOut(IList<DJControllerControl> data, bool on = true)
     {
-        for (var i = 0; i < data.Length; i++)
+        for (var i = 0; i < data.Count; i++)
         {
             var builder = new ChannelMessageBuilder
             {
                 Command = ChannelCommand.NoteOn,
-                Data1 = data[i],
+                Data1 = (int) data[i],
                 Data2 = (on ? 127 : 0)
             };
 
@@ -82,10 +92,14 @@ public class MIDIManager : Singleton<MIDIManager>
             _outputDevice.Send(builder.Result);
         }
 
-        _outputDevice.Error += (sender, eventArgs) => { Debug.LogException(eventArgs.Error); };
+        _outputDevice.Error += (sender, eventArgs) =>
+        {
+            AppManager.Instance.PushToLog(eventArgs.Error.Message, AppManager.LogType.Error);
+            Debug.LogException(eventArgs.Error);
+        };
     }
 
-    public void Greet()
+    private void Greet()
     {
         StopAllCoroutines();
         StartCoroutine(IGreet());
@@ -105,22 +119,22 @@ public class MIDIManager : Singleton<MIDIManager>
     {
         WriteOut(new[]
         {
-            35,
-            34,
-            33,
-            1,
-            2,
-            3,
-            4,
-            43,
-            49,
-            50,
-            51,
-            52,
-            45,
-            83,
-            82,
-            81
+            DJControllerControl.LeftSync,
+            DJControllerControl.LeftCue,
+            DJControllerControl.LeftPlayPause,
+            DJControllerControl.LeftPad1,
+            DJControllerControl.LeftPad2,
+            DJControllerControl.LeftPad3,
+            DJControllerControl.LeftPad4,
+            DJControllerControl.Rec,
+            DJControllerControl.RightPad1,
+            DJControllerControl.RightPad2,
+            DJControllerControl.RightPad3,
+            DJControllerControl.RightPad4,
+            DJControllerControl.ScratchAtomix,
+            DJControllerControl.RightSync,
+            DJControllerControl.RightCue,
+            DJControllerControl.RightPlayPause,
         }, on);
     }
 
@@ -133,51 +147,51 @@ public class MIDIManager : Singleton<MIDIManager>
     private IEnumerator ILightsPlayLeft()
     {
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {1});
+        WriteOut(new[] {DJControllerControl.LeftPad1,});
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {2});
-        WriteOut(new[] {1}, false);
+        WriteOut(new[] {DJControllerControl.LeftPad2});
+        WriteOut(new[] {DJControllerControl.LeftPad1}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {4});
-        WriteOut(new[] {2}, false);
+        WriteOut(new[] {DJControllerControl.LeftPad4});
+        WriteOut(new[] {DJControllerControl.LeftPad2}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {3});
-        WriteOut(new[] {4}, false);
+        WriteOut(new[] {DJControllerControl.LeftPad3});
+        WriteOut(new[] {DJControllerControl.LeftPad4}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {1});
-        WriteOut(new[] {3}, false);
+        WriteOut(new[] {DJControllerControl.LeftPad1});
+        WriteOut(new[] {DJControllerControl.LeftPad3}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {1}, false);
+        WriteOut(new[] {DJControllerControl.LeftPad1}, false);
     }
 
     private IEnumerator ILightsPlayRight()
     {
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {50});
+        WriteOut(new[] {DJControllerControl.RightPad2});
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {49});
-        WriteOut(new[] {50}, false);
+        WriteOut(new[] {DJControllerControl.RightPad1});
+        WriteOut(new[] {DJControllerControl.RightPad2}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {51});
-        WriteOut(new[] {49}, false);
+        WriteOut(new[] {DJControllerControl.RightPad3});
+        WriteOut(new[] {DJControllerControl.RightPad1}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {52});
-        WriteOut(new[] {51}, false);
+        WriteOut(new[] {DJControllerControl.RightPad4});
+        WriteOut(new[] {DJControllerControl.RightPad3}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {50});
-        WriteOut(new[] {52}, false);
+        WriteOut(new[] {DJControllerControl.RightPad2});
+        WriteOut(new[] {DJControllerControl.RightPad4}, false);
 
         yield return new WaitForSeconds(.1f);
-        WriteOut(new[] {50}, false);
+        WriteOut(new[] {DJControllerControl.RightPad2}, false);
     }
 
     private void HandleSerialDataReceived(object sender, SerialMessageEventArgs e)
@@ -192,36 +206,39 @@ public class MIDIManager : Singleton<MIDIManager>
 
     private IEnumerator ActivityLight()
     {
-        WriteOut(new[] {45});
+        WriteOut(new[] {DJControllerControl.ScratchAtomix});
 
         yield return new WaitForSeconds(.1f);
 
-        WriteOut(new[] {45}, false);
+        WriteOut(new[] {DJControllerControl.ScratchAtomix}, false);
     }
 
     private void HandleChannelMessageReceived(object sender, ChannelMessageEventArgs e)
     {
         _context.Post(delegate(object dummy)
         {
-            Log.Info("<color=blue><b>" +
-                     e.Message.Data1 +
-                     " | " +
-                     e.Message.Data2 +
-                     " | " +
-                     e.Message.Data2.ToString("X") +
-                     " | " +
-                     e.Message.Command.GetHashCode().ToString() +
-                     " | " +
-                     e.Message.Command.ToString() +
-                     "</b></color>");
+            var logMsg = "<b>" + e.Message.Data1 + "</b>" +
+                         " | " +
+                         e.Message.Data2 +
+                         " | " +
+                         e.Message.Data2.ToString("X") +
+                         " | " +
+                         e.Message.Command.GetHashCode().ToString() +
+                         " | " +
+                         e.Message.Command.ToString();
+
+            Log.Info("<color=blue><b>" + logMsg + "</b></color>");
 
             var channelCommand = e.Message.Command;
 
             if (!_isRadioOn && e.Message.Data1 != 43)
             {
+                AppManager.Instance.PushToLog("Press REC button to enable communication...");
                 Greet();
                 return;
             }
+
+            AppManager.Instance.PushToLog(logMsg);
 
             switch (channelCommand)
             {
@@ -257,62 +274,62 @@ public class MIDIManager : Singleton<MIDIManager>
     private void SetSplit(int control)
     {
         if (control != 127) return;
-        
+
         if (_vfo == VFO.A)
         {
-            if (activeCommands.ContainsKey(4))
+            if (_activeCommands.ContainsKey(DJControllerControl.LeftPad4))
             {
-                if (activeCommands[4] == "FT1;")
+                if (_activeCommands[DJControllerControl.LeftPad4] == "FT1;")
                 {
-                    activeCommands[4] = "FT0;";
+                    _activeCommands[DJControllerControl.LeftPad4] = "FT0;";
                     _isSplitActive = false;
                     control = 0;
                 }
                 else
                 {
-                    activeCommands[4] = "FT1;";
+                    _activeCommands[DJControllerControl.LeftPad4] = "FT1;";
                     _isSplitActive = true;
                 }
             }
             else
             {
-                activeCommands[4] = "FT1;";
+                _activeCommands[DJControllerControl.LeftPad4] = "FT1;";
                 _isSplitActive = true;
             }
         }
         else
         {
-            if (activeCommands.ContainsKey(4))
+            if (_activeCommands.ContainsKey(DJControllerControl.LeftPad4))
             {
-                if (activeCommands[4] == "FT0;")
+                if (_activeCommands[DJControllerControl.LeftPad4] == "FT0;")
                 {
-                    activeCommands[4] = "FT1;";
+                    _activeCommands[DJControllerControl.LeftPad4] = "FT1;";
                     _isSplitActive = false;
                     control = 0;
                 }
                 else
                 {
-                    activeCommands[4] = "FT0;";
+                    _activeCommands[DJControllerControl.LeftPad4] = "FT0;";
                     _isSplitActive = true;
                 }
             }
             else
             {
-                activeCommands[4] = "FT0;";
+                _activeCommands[DJControllerControl.LeftPad4] = "FT0;";
                 _isSplitActive = true;
             }
         }
 
-        SendToRadio(4, activeCommands[4], control);
+        SendToRadio(DJControllerControl.LeftPad4, _activeCommands[DJControllerControl.LeftPad4], control);
     }
 
 
     private void ChangeVFO(string vfo)
     {
         var command = "";
-        int note = 0;
-        int[] switchOff = null;
-        
+        DJControllerControl note = DJControllerControl.None;
+        DJControllerControl[] switchOff = null;
+
         // Reset split state
         _isSplitActive = false;
 
@@ -321,19 +338,19 @@ public class MIDIManager : Singleton<MIDIManager>
             case "A":
                 command = "FR0;";
                 _vfo = VFO.A;
-                note = 35;
-                switchOff = new[] {34, 4};
+                note = DJControllerControl.LeftSync;
+                switchOff = new[] {DJControllerControl.LeftCue, DJControllerControl.LeftPad4};
                 AppManager.Instance.ActivateButton(DJControllerControl.LeftSync);
-                activeCommands.Remove(4);
+                _activeCommands.Remove(DJControllerControl.LeftPad4);
                 break;
 
             case "B":
                 command = "FR1;";
                 _vfo = VFO.B;
-                note = 34;
-                switchOff = new[] {35, 4};
+                note = DJControllerControl.LeftCue;
+                switchOff = new[] {DJControllerControl.LeftSync, DJControllerControl.LeftPad4};
                 AppManager.Instance.ActivateButton(DJControllerControl.LeftCue);
-                activeCommands.Remove(4);
+                _activeCommands.Remove(DJControllerControl.LeftPad4);
                 break;
         }
 
@@ -343,37 +360,57 @@ public class MIDIManager : Singleton<MIDIManager>
     private void ChangeRadioMode(string mode)
     {
         var command = "";
-        var note = 0;
-        int[] switchOff = null;
+        DJControllerControl note = DJControllerControl.None;
+        DJControllerControl[] switchOff = null;
 
         switch (mode)
         {
             case "CW":
                 command = "MD3;MD";
                 _radioMode = RadioMode.CW;
-                note = 51;
-                switchOff = new[] {50, 49, 52};
+                note = DJControllerControl.RightPad3;
+                switchOff = new[]
+                {
+                    DJControllerControl.RightPad2,
+                    DJControllerControl.RightPad1,
+                    DJControllerControl.RightPad4
+                };
                 break;
 
             case "LSB":
                 command = "MD1;MD";
                 _radioMode = RadioMode.LSB;
-                note = 49;
-                switchOff = new[] {50, 51, 52};
+                note = DJControllerControl.RightPad1;
+                switchOff = new[]
+                {
+                    DJControllerControl.RightPad2,
+                    DJControllerControl.RightPad3,
+                    DJControllerControl.RightPad4
+                };
                 break;
 
             case "USB":
                 command = "MD2;MD";
                 _radioMode = RadioMode.USB;
-                note = 50;
-                switchOff = new[] {49, 51, 52};
+                note = DJControllerControl.RightPad2;
+                switchOff = new[]
+                {
+                    DJControllerControl.RightPad1,
+                    DJControllerControl.RightPad3,
+                    DJControllerControl.RightPad4
+                };
                 break;
 
             case "FSK":
                 command = "MD6;MD";
                 _radioMode = RadioMode.FSK;
-                note = 52;
-                switchOff = new[] {50, 51, 49};
+                note = DJControllerControl.RightPad4;
+                switchOff = new[]
+                {
+                    DJControllerControl.RightPad2,
+                    DJControllerControl.RightPad3,
+                    DJControllerControl.RightPad1
+                };
                 break;
         }
 
@@ -384,41 +421,42 @@ public class MIDIManager : Singleton<MIDIManager>
     {
         var note = e.Message.Data1;
         var control = e.Message.Data2;
+        var key = (DJControllerControl) note;
 
-        switch (note)
+        switch (key)
         {
             // VFO Tune
-            case 48:
+            case DJControllerControl.LeftJog:
                 AppManager.Instance.MoveJog(control, DJControllerControl.LeftJog);
                 SendToRadio(control < 64 ? "UP;" : "DN;");
                 break;
 
             // RIT Tune
-            case 49:
+            case DJControllerControl.RightJog:
                 AppManager.Instance.MoveJog(control, DJControllerControl.RightJog);
                 SendToRadio(control < 64 ? "RU;" : "RD;");
                 break;
 
             // CW Speed
-            case 54:
+            case DJControllerControl.XFader:
                 var keySpeed = Mathf.FloorToInt(4 + (60 - 4) * control / 127);
                 SendToRadio("KS" + keySpeed.ToString("D3") + ";");
                 break;
 
             // DSP Low
-            case 59:
+            case DJControllerControl.LeftMedium:
                 var dspLow = Mathf.FloorToInt(control / 11);
                 SendToRadio("SL" + dspLow.ToString("D2") + ";");
                 break;
 
             // DSP High
-            case 63:
+            case DJControllerControl.RightMedium:
                 var dspHigh = Mathf.FloorToInt(control / 11);
                 SendToRadio("SH" + dspHigh.ToString("D2") + ";");
                 break;
 
             // DSP Shift    
-            case 64:
+            case DJControllerControl.RightBass:
                 var value = 0;
 
                 switch (_radioMode)
@@ -435,19 +473,19 @@ public class MIDIManager : Singleton<MIDIManager>
                 break;
 
             // AF Gain
-            case 57:
+            case DJControllerControl.LeftVolume:
                 var afValue = Mathf.FloorToInt(0 + (255 - 0) * control / 127);
                 SendToRadio("AG0" + afValue.ToString("D3") + ";");
                 break;
 
             // RF Gain
-            case 61:
+            case DJControllerControl.RightVolume:
                 var gain = Mathf.FloorToInt(0 + (255 - 0) * control / 127);
                 SendToRadio("RG" + gain.ToString("D3") + ";");
                 break;
 
             // Width
-            case 60:
+            case DJControllerControl.LeftBass:
                 var width = Mathf.FloorToInt(300 + (1000 - 300) * control / 127);
                 SendToRadio("IS " + width.ToString("D4") + ";");
                 break;
@@ -460,21 +498,24 @@ public class MIDIManager : Singleton<MIDIManager>
 
         ChangeRadioMode(AppManager.Instance.Settings["Default Radio Mode"].StringValue);
         // RIT Off
-        SendToRadio(82, "RT0;");
+        SendToRadio(DJControllerControl.RightCue, "RT0;");
         // Set default VFO
         ChangeVFO(AppManager.Instance.Settings["Default VFO"].StringValue);
         _isRadioOn = true;
+
+        AppManager.Instance.PushToLog("Communication enabled", AppManager.LogType.Info);
     }
 
     private void HandleNote(ChannelMessageEventArgs e)
     {
         var note = e.Message.Data1;
         var control = e.Message.Data2;
+        var key = (DJControllerControl) note;
 
-        switch (note)
+        switch (key)
         {
             // ON/OFF
-            case 43:
+            case DJControllerControl.Rec:
                 if (control == 127)
                 {
                     if (_isRadioOn)
@@ -484,121 +525,121 @@ public class MIDIManager : Singleton<MIDIManager>
                         SendToRadio("PS0;");
                         ControlLights(false);
                         _isRadioOn = false;
+                        AppManager.Instance.PushToLog("Communication disabled", AppManager.LogType.Info);
                     }
                     else
                     {
-                        SendToRadio(43, "PS1;");
+                        SendToRadio(DJControllerControl.Rec, "PS1;");
                         StartCoroutine(WakeUpRadio());
                     }
                 }
                 break;
 
             // VFO A
-            case 35:
+            case DJControllerControl.LeftSync:
                 ChangeVFO("A");
                 break;
 
             // VFO B
-            case 34:
+            case DJControllerControl.LeftCue:
                 ChangeVFO("B");
                 break;
 
             // A = B
-            case 33:
-                SendToRadio(33, "VV;", control);
+            case DJControllerControl.LeftPlayPause:
+                SendToRadio(DJControllerControl.LeftPlayPause, "VV;", control);
                 break;
 
             // AT Tune
-            case 1:
-                SendToRadio(1, "AC111;", control);
+            case DJControllerControl.LeftPad1:
+                SendToRadio(DJControllerControl.LeftPad1, "AC111;", control);
                 break;
 
             // A/B
-            case 2:
+            case DJControllerControl.LeftPad2:
                 if (control == 127)
                 {
                     if (_vfo == VFO.A)
                     {
                         if (_isSplitActive)
                         {
-                            SendToRadio(2, "FR1;FT0;", control, true);
-                            activeCommands[4] = "FT0;";
+                            SendToRadio(DJControllerControl.LeftPad2, "FR1;FT0;", control, true);
+                            _activeCommands[DJControllerControl.LeftPad4] = "FT0;";
                         }
                         else
                         {
-                            SendToRadio(2, "FR1;FT1;", control, true);
-                            activeCommands[4] = "FT1;";
-                            
+                            SendToRadio(DJControllerControl.LeftPad2, "FR1;FT1;", control, true);
+                            _activeCommands[DJControllerControl.LeftPad4] = "FT1;";
                         }
-               
+
                         _vfo = VFO.B;
-                        
-                        WriteOut(new[] {34});
-                        WriteOut(new[] {35}, false);
+
+                        WriteOut(new[] {DJControllerControl.LeftCue});
+                        WriteOut(new[] {DJControllerControl.LeftSync}, false);
                     }
                     else
                     {
                         if (_isSplitActive)
                         {
-                            SendToRadio(2, "FR0;FT1;", control, true);
-                            activeCommands[4] = "FT1;";
+                            SendToRadio(DJControllerControl.LeftPad2, "FR0;FT1;", control, true);
+                            _activeCommands[DJControllerControl.LeftPad4] = "FT1;";
                         }
                         else
                         {
-                            SendToRadio(2, "FR0;FT0;", control, true);
-                            activeCommands[4] = "FT0;";
+                            SendToRadio(DJControllerControl.LeftPad2, "FR0;FT0;", control, true);
+                            _activeCommands[DJControllerControl.LeftPad4] = "FT0;";
                         }
                         _vfo = VFO.A;
-                        
-                        WriteOut(new[] {35});
-                        WriteOut(new[] {34}, false);
+
+                        WriteOut(new[] {DJControllerControl.LeftSync});
+                        WriteOut(new[] {DJControllerControl.LeftCue}, false);
                     }
                 }
                 break;
 
             // SEND
-            case 3:
-                SendToRadio(3, "TX0;", "RX;", control);
+            case DJControllerControl.LeftPad3:
+                SendToRadio(DJControllerControl.LeftPad3, "TX0;", "RX;", control);
                 break;
 
             // SPLIT
-            case 4:
+            case DJControllerControl.LeftPad4:
                 SetSplit(control);
                 break;
 
             // LSB    
-            case 49:
+            case DJControllerControl.RightPad1:
                 ChangeRadioMode("LSB");
                 break;
 
             // USB
-            case 50:
+            case DJControllerControl.RightPad2:
                 ChangeRadioMode("USB");
                 break;
 
             // CW   
-            case 51:
+            case DJControllerControl.RightPad3:
                 ChangeRadioMode("CW");
                 break;
 
             // FSK
-            case 52:
+            case DJControllerControl.RightPad4:
                 ChangeRadioMode("FSK");
                 break;
 
             // RIT ON
-            case 83:
-                SendToRadio(83, "RT1;", new[] {82});
+            case DJControllerControl.RightSync:
+                SendToRadio(DJControllerControl.RightSync, "RT1;", new[] {DJControllerControl.RightCue});
                 break;
 
             // RIT OFF
-            case 82:
-                SendToRadio(82, "RT0;", new[] {83});
+            case DJControllerControl.RightCue:
+                SendToRadio(DJControllerControl.RightCue, "RT0;", new[] {DJControllerControl.RightSync});
                 break;
 
             // RIT CLEAR
-            case 81:
-                SendToRadio(81, "RC;", control);
+            case DJControllerControl.RightPlayPause:
+                SendToRadio(DJControllerControl.RightPlayPause, "RC;", control);
                 break;
         }
     }
@@ -609,54 +650,54 @@ public class MIDIManager : Singleton<MIDIManager>
         SerialManager.Instance.Write(message);
     }
 
-    private void SendToRadio(int code, string onMessage, string offMessage, int control)
+    private void SendToRadio(DJControllerControl key, string onMessage, string offMessage, int control)
     {
         if (control == 127)
         {
-            if (activeCommands.ContainsKey(code))
+            if (_activeCommands.ContainsKey(key))
             {
-                if (activeCommands[code] == onMessage)
+                if (_activeCommands[key] == onMessage)
                 {
-                    activeCommands[code] = offMessage;
+                    _activeCommands[key] = offMessage;
                     SerialManager.instance.Write(offMessage);
-                    WriteOut(new[] {code}, false);
+                    WriteOut(new[] {key}, false);
                 }
                 else
                 {
-                    activeCommands[code] = onMessage;
+                    _activeCommands[key] = onMessage;
                     SerialManager.instance.Write(onMessage);
-                    WriteOut(new[] {code});
+                    WriteOut(new[] {key});
                 }
             }
             else
             {
-                activeCommands.Add(code, onMessage);
+                _activeCommands.Add(key, onMessage);
                 SerialManager.instance.Write(onMessage);
-                WriteOut(new[] {code});
+                WriteOut(new[] {key});
             }
         }
     }
 
-    private void SendToRadio(int code, string message, int control, bool forceClose = false)
+    private void SendToRadio(DJControllerControl key, string message, int control, bool forceClose = false)
     {
-        StartCoroutine(ISendToRadio(code, message, control, forceClose));
+        StartCoroutine(ISendToRadio(key, message, control, forceClose));
     }
 
-    private IEnumerator ISendToRadio(int code, string message, int control, bool forceClose)
+    private IEnumerator ISendToRadio(DJControllerControl key, string message, int control, bool forceClose)
     {
-        WriteOut(new[] {code});
+        WriteOut(new[] {key});
 
         SerialManager.Instance.Write(message);
 
         yield return new WaitForSeconds(.3f);
 
         if (control == 0 || forceClose)
-            WriteOut(new[] {code}, false);
+            WriteOut(new[] {key}, false);
     }
 
-    private void SendToRadio(int code, string message, int[] switchOffCodes = null)
+    private void SendToRadio(DJControllerControl key, string message, DJControllerControl[] switchOffCodes = null)
     {
-        WriteOut(new[] {code});
+        WriteOut(new[] {key});
 
         if (switchOffCodes != null)
             WriteOut(switchOffCodes, false);

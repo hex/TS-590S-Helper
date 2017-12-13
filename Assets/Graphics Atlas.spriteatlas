@@ -39,6 +39,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 519204e33efb0ec4fb93837d95b8dd4f, type: 3}
   - {fileID: 21300000, guid: 7e91bc1c50c84a34cbc9287eacc00046, type: 3}
   - {fileID: 21300000, guid: 2a06f6570c708514c967fc766df9c336, type: 3}
+  - {fileID: 21300000, guid: e38d8402f1c5dd642992e88d663dbbb0, type: 3}
   m_PackedSpriteNamesToIndex:
   - controller
   - jog
@@ -47,5 +48,6 @@ SpriteAtlas:
   - white
   - round_border
   - white_heavy_rounded
+  - dot_pattern
   m_Tag: Graphics Atlas
   m_IsVariant: 0
