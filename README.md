@@ -39,11 +39,7 @@ DJControl Compact=1
 |Default Radio Mode | LSB | Default mode for startup. Available options: **CW**, **LSB**, **USB**, **FSK** | 
 |Default VFO | A | Default VFO for startup. Available options: **A**, **B** | 
 
-## Example usage with remote computer
-
-In this example I will be using the [Virtual Serial Ports Emulator](http://www.eterlogic.com/Products.VSPE.html), you can use any other serial port emulator I chosed VSPE because it's easy and it just works.
-
-#### TODO
+## TODO
 * Add configurable actions for controller
 * Remote setup tutorial
 
