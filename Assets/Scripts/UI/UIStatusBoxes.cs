@@ -53,7 +53,14 @@ public class UIStatusBoxes : MonoBehaviour
 
     private void UpdateRemoteStatusBox()
     {
-        StartCoroutine(IUpdateRemoteStatus());
+        if (AppManager.Instance.Settings["Enable Remote"].BoolValue)
+        {
+            StartCoroutine(IUpdateRemoteStatus());
+        }
+        else
+        {
+            _remoteStatus.ChangeState(StatusBoxState.Disabled);
+        }
     }
 
     IEnumerator IUpdateRemoteStatus()

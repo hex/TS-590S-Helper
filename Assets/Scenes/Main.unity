@@ -240,7 +240,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 358.08963
+      value: 234.9848
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -1352,11 +1352,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0
+  far clip plane: 1
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 1
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1379,7 +1379,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 154134812}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: 1.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1791,7 +1791,7 @@ RectTransform:
   m_GameObject: {fileID: 554653749}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.67, y: 0.67, z: 1}
   m_Children:
   - {fileID: 216451691}
   - {fileID: 1205337558}
@@ -2123,7 +2123,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 741.17926
+      value: 494.9696
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -2133,7 +2133,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 358.08963
+      value: 234.9848
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -2700,7 +2700,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -15, y: -4.5700073}
+  m_AnchoredPosition: {x: -15, y: -4.5703125}
   m_SizeDelta: {x: 80, y: 26}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1014582290
@@ -2964,7 +2964,7 @@ MonoBehaviour:
   m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IgnoreReversedGraphics: 1
+  m_IgnoreReversedGraphics: 0
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
@@ -2983,9 +2983,9 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 1152, y: 700}
-  m_ScreenMatchMode: 1
-  m_MatchWidthOrHeight: 0
+  m_ReferenceResolution: {x: 1024, y: 500}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -3000,7 +3000,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 154134816}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 0
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -4459,7 +4459,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 1104.2689
+      value: 734.9544
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -4469,7 +4469,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 358.08963
+      value: 234.9848
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -5447,7 +5447,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 378.08963
+      value: 254.9848
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
@@ -5457,7 +5457,7 @@ Prefab:
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 358.08963
+      value: 234.9848
       objectReference: {fileID: 0}
     - target: {fileID: 224323317082703532, guid: f7165b8980847184bb2025918db8af8d,
         type: 2}

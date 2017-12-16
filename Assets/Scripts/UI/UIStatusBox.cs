@@ -91,7 +91,7 @@ public class UIStatusBox : StateKitLite<StatusBoxState>
                 break;
 
             case StatusBoxType.Remote:
-                successText = "Unreachable";
+                successText = AppManager.Instance.Settings["Enable Remote"].BoolValue ? "Unreachable" : "Disabled";
                 break;
 
             case StatusBoxType.Midi:

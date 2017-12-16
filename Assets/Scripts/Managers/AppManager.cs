@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.IO;
 using DG.Tweening;
 using Sanford.Multimedia.Midi;
 using SharpConfig;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -98,7 +95,8 @@ public class AppManager : Singleton<AppManager>
     protected override void Awake()
     {
         base.Awake();
-
+        
+        PlayerPrefs.DeleteAll();
         Application.targetFrameRate = 30;
         DOTween.Init();
 
@@ -128,6 +126,7 @@ public class AppManager : Singleton<AppManager>
             Log.Info("No settings file found. Creating one...");
             AppManager.Instance.PushToLog("No settings file found. Creating one...");
 
+            Configuration["Settings"]["Enable Remote"].BoolValue = true;
             Configuration["Settings"]["Remote Host"].StringValue = "127.0.0.1";
             Configuration["Settings"]["Remote Port"].IntValue = 1028;
             Configuration["Settings"]["COM Port"].StringValue = "COM1";

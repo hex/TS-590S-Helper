@@ -68,7 +68,10 @@ public class TCPManager : Singleton<TCPManager>
     private void OnApplicationQuit()
     {
         Log.Info("Closing socket");
-        CloseSocket();
+        if (AppManager.Instance.Settings["Enable Remote"].BoolValue)
+        {
+            CloseSocket();
+        }
     }
 
     //keep connection alive, reconnect if connection lost
