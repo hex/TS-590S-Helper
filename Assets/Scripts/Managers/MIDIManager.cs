@@ -90,6 +90,7 @@ public class MIDIManager : Singleton<MIDIManager>
             builder.Build();
 
             _outputDevice.Send(builder.Result);
+            AppManager.Instance.ChangeButtonState(data[i], on);
         }
 
         _outputDevice.Error += (sender, eventArgs) =>
@@ -121,7 +122,7 @@ public class MIDIManager : Singleton<MIDIManager>
         {
             DJControllerControl.LeftSync,
             DJControllerControl.LeftCue,
-            DJControllerControl.LeftPlayPause,
+            DJControllerControl.LeftPausePlay,
             DJControllerControl.LeftPad1,
             DJControllerControl.LeftPad2,
             DJControllerControl.LeftPad3,
@@ -134,7 +135,7 @@ public class MIDIManager : Singleton<MIDIManager>
             DJControllerControl.ScratchAtomix,
             DJControllerControl.RightSync,
             DJControllerControl.RightCue,
-            DJControllerControl.RightPlayPause,
+            DJControllerControl.RightPausePlay,
         }, on);
     }
 
@@ -340,7 +341,6 @@ public class MIDIManager : Singleton<MIDIManager>
                 _vfo = VFO.A;
                 note = DJControllerControl.LeftSync;
                 switchOff = new[] {DJControllerControl.LeftCue, DJControllerControl.LeftPad4};
-                AppManager.Instance.ActivateButton(DJControllerControl.LeftSync);
                 _activeCommands.Remove(DJControllerControl.LeftPad4);
                 break;
 
@@ -349,7 +349,6 @@ public class MIDIManager : Singleton<MIDIManager>
                 _vfo = VFO.B;
                 note = DJControllerControl.LeftCue;
                 switchOff = new[] {DJControllerControl.LeftSync, DJControllerControl.LeftPad4};
-                AppManager.Instance.ActivateButton(DJControllerControl.LeftCue);
                 _activeCommands.Remove(DJControllerControl.LeftPad4);
                 break;
         }
@@ -427,36 +426,40 @@ public class MIDIManager : Singleton<MIDIManager>
         {
             // VFO Tune
             case DJControllerControl.LeftJog:
-                AppManager.Instance.MoveJog(control, DJControllerControl.LeftJog);
+                AppManager.Instance.MoveJog(control, DJControllerControl.LeftJog, true);
                 SendToRadio(control < 64 ? "UP;" : "DN;");
                 break;
 
             // RIT Tune
             case DJControllerControl.RightJog:
-                AppManager.Instance.MoveJog(control, DJControllerControl.RightJog);
+                AppManager.Instance.MoveJog(control, DJControllerControl.RightJog, true);
                 SendToRadio(control < 64 ? "RU;" : "RD;");
                 break;
 
             // CW Speed
             case DJControllerControl.XFader:
+                AppManager.Instance.MoveXFader(control);
                 var keySpeed = Mathf.FloorToInt(4 + (60 - 4) * control / 127);
                 SendToRadio("KS" + keySpeed.ToString("D3") + ";");
                 break;
 
             // DSP Low
             case DJControllerControl.LeftMedium:
+                AppManager.Instance.MoveJog(control, DJControllerControl.LeftMedium);
                 var dspLow = Mathf.FloorToInt(control / 11);
                 SendToRadio("SL" + dspLow.ToString("D2") + ";");
                 break;
 
             // DSP High
             case DJControllerControl.RightMedium:
+                AppManager.Instance.MoveJog(control, DJControllerControl.RightMedium);
                 var dspHigh = Mathf.FloorToInt(control / 11);
                 SendToRadio("SH" + dspHigh.ToString("D2") + ";");
                 break;
 
             // DSP Shift    
             case DJControllerControl.RightBass:
+                AppManager.Instance.MoveJog(control, DJControllerControl.RightBass);
                 var value = 0;
 
                 switch (_radioMode)
@@ -474,18 +477,21 @@ public class MIDIManager : Singleton<MIDIManager>
 
             // AF Gain
             case DJControllerControl.LeftVolume:
+                AppManager.Instance.MoveJog(control, DJControllerControl.LeftVolume);
                 var afValue = Mathf.FloorToInt(0 + (255 - 0) * control / 127);
                 SendToRadio("AG0" + afValue.ToString("D3") + ";");
                 break;
 
             // RF Gain
             case DJControllerControl.RightVolume:
+                AppManager.Instance.MoveJog(control, DJControllerControl.RightVolume);
                 var gain = Mathf.FloorToInt(0 + (255 - 0) * control / 127);
                 SendToRadio("RG" + gain.ToString("D3") + ";");
                 break;
 
             // Width
             case DJControllerControl.LeftBass:
+                AppManager.Instance.MoveJog(control, DJControllerControl.LeftBass);
                 var width = Mathf.FloorToInt(300 + (1000 - 300) * control / 127);
                 SendToRadio("IS " + width.ToString("D4") + ";");
                 break;
@@ -546,8 +552,8 @@ public class MIDIManager : Singleton<MIDIManager>
                 break;
 
             // A = B
-            case DJControllerControl.LeftPlayPause:
-                SendToRadio(DJControllerControl.LeftPlayPause, "VV;", control);
+            case DJControllerControl.LeftPausePlay:
+                SendToRadio(DJControllerControl.LeftPausePlay, "VV;", control);
                 break;
 
             // AT Tune
@@ -638,8 +644,8 @@ public class MIDIManager : Singleton<MIDIManager>
                 break;
 
             // RIT CLEAR
-            case DJControllerControl.RightPlayPause:
-                SendToRadio(DJControllerControl.RightPlayPause, "RC;", control);
+            case DJControllerControl.RightPausePlay:
+                SendToRadio(DJControllerControl.RightPausePlay, "RC;", control);
                 break;
         }
     }

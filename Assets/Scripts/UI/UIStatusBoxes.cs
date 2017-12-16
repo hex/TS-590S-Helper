@@ -24,8 +24,13 @@ public class UIStatusBoxes : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
-        //UpdateComPortStatusBox();
-        //UpdateRemoteStatusBox();
+        CheckBoxes();
+    }
+
+    public void CheckBoxes()
+    {
+        UpdateComPortStatusBox();
+        UpdateRemoteStatusBox();
         UpdateMIDIDeviceStatus();
     }
 

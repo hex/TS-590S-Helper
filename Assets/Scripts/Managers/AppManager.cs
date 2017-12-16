@@ -7,6 +7,7 @@ using Sanford.Multimedia.Midi;
 using SharpConfig;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -18,7 +19,7 @@ public enum DJControllerControl
     LeftJog = 48,
     LeftSync = 35,
     LeftCue = 34,
-    LeftPlayPause = 33,
+    LeftPausePlay = 33,
     Rec = 43,
     Mode = 48,
     LeftPad1 = 1,
@@ -41,7 +42,7 @@ public enum DJControllerControl
     RightJog = 49,
     RightSync = 83,
     RightCue = 82,
-    RightPlayPause = 81
+    RightPausePlay = 81
 }
 
 public class AppManager : Singleton<AppManager>
@@ -51,20 +52,48 @@ public class AppManager : Singleton<AppManager>
 
     private const string MidiControllerStringId = "DJControl Compact";
 
-    [Header("DJ Controller Components")]
+    [Header("DJ Controller Components")] [Header("Jogs")]
     // Big Jogs
     [SerializeField] private Image _leftJog;
+
     [SerializeField] private Image _rightJog;
 
+    // Small Jogs
+    [SerializeField] private Image _leftVolumeJog;
+
+    [SerializeField] private Image _rightVolumeJog;
+    [SerializeField] private Image _leftMediumJog;
+    [SerializeField] private Image _leftBassJog;
+    [SerializeField] private Image _rightMediumJog;
+    [SerializeField] private Image _rightBassJog;
+    
+    // XFader
+    [SerializeField] private Slider _xFaderSlider;
+
     // Text Buttons
-    [SerializeField] private TMP_Text _leftSync;
+    [Header("Buttons Text")] [SerializeField] private TMP_Text _leftSync;
 
     [SerializeField] private TMP_Text _leftCue;
     [SerializeField] private TMP_Text _leftPausePlay;
+    [SerializeField] private TMP_Text _rec;
+    [SerializeField] private TMP_Text _leftPad1;
+    [SerializeField] private TMP_Text _leftPad2;
+    [SerializeField] private TMP_Text _leftPad3;
+    [SerializeField] private TMP_Text _leftPad4;
+    [SerializeField] private TMP_Text _scratchAtomix;
+    [SerializeField] private TMP_Text _rightPad1;
+    [SerializeField] private TMP_Text _rightPad2;
+    [SerializeField] private TMP_Text _rightPad3;
+    [SerializeField] private TMP_Text _rightPad4;
+    [SerializeField] private TMP_Text _rightSync;
+    [SerializeField] private TMP_Text _rightCue;
+    [SerializeField] private TMP_Text _rightPausePlay;
 
-    // Log lines
+    [Header("Misc stuff")] [SerializeField] private TMP_FontAsset _regularFont;
+    [SerializeField] private TMP_FontAsset _boldFont;
     [SerializeField] private TMP_Text _logLines;
     [SerializeField] private string[] _logQueue = new string[3];
+    [SerializeField] private UIStatusBoxes _statusBoxes;
 
     protected override void Awake()
     {
@@ -74,6 +103,16 @@ public class AppManager : Singleton<AppManager>
         DOTween.Init();
 
         LoadOrCreateConfig();
+    }
+
+    public void OpenURL(string url)
+    {
+        Application.OpenURL(url);
+    }
+
+    public void Refresh()
+    {
+       _statusBoxes.CheckBoxes();
     }
 
     private void LoadOrCreateConfig()
@@ -127,34 +166,121 @@ public class AppManager : Singleton<AppManager>
         Settings = Configuration["Settings"];
     }
 
-    public void MoveJog(int control, DJControllerControl controlJog)
+    public void MoveXFader(float val)
     {
-        Image jog = null;
-
-        jog = controlJog == DJControllerControl.LeftJog ? _leftJog : _rightJog;
-        jog.transform.DOLocalRotate(control < 64 ? new Vector3(0, 0, -1) : new Vector3(0, 0, 1), 0f,
-            RotateMode.LocalAxisAdd);
+        _xFaderSlider.value = val;
     }
 
-    public void ActivateButton(DJControllerControl control)
+    public void MoveJog(int control, DJControllerControl controlJog, bool isRelative = false)
     {
-        TMP_Text textButton = null;
+        Image jog = GetJogImage(controlJog);
 
+        if (isRelative)
+        {
+            jog.transform.DOLocalRotate(control < 64 ? new Vector3(0, 0, -1) : new Vector3(0, 0, 1), 0f,
+                RotateMode.LocalAxisAdd);
+        }
+        else
+        {
+            jog.transform.DOLocalRotate(new Vector3(0, 0, -control), 0f, RotateMode.FastBeyond360);
+        }
+    }
+
+    Image GetJogImage(DJControllerControl control)
+    {
+        switch (control)
+        {
+            case DJControllerControl.LeftJog:
+                return _leftJog;
+            case DJControllerControl.RightJog:
+                return _rightJog;
+            case DJControllerControl.LeftVolume:
+                return _leftVolumeJog;
+            case DJControllerControl.RightVolume:
+                return _rightVolumeJog;
+            case DJControllerControl.LeftMedium:
+                return _leftMediumJog;
+            case DJControllerControl.LeftBass:
+                return _leftBassJog;
+            case DJControllerControl.RightMedium:
+                return _rightMediumJog;
+            case DJControllerControl.RightBass:
+                return _rightBassJog;
+            default:
+                return null;
+        }
+    }
+
+    TMP_Text GetButtonText(DJControllerControl control)
+    {
         switch (control)
         {
             case DJControllerControl.LeftSync:
-                textButton = _leftSync;
-                break;
-
+                return _leftSync;
             case DJControllerControl.LeftCue:
-
-                Log.Error("asdasd");
-                textButton = _leftCue;
-                break;
+                return _leftCue;
+            case DJControllerControl.LeftPausePlay:
+                return _leftPausePlay;
+            case DJControllerControl.Rec:
+                return _rec;
+            case DJControllerControl.LeftPad1:
+                return _leftPad1;
+            case DJControllerControl.LeftPad2:
+                return _leftPad2;
+            case DJControllerControl.LeftPad3:
+                return _leftPad3;
+            case DJControllerControl.LeftPad4:
+                return _leftPad4;
+            case DJControllerControl.ScratchAtomix:
+                return _scratchAtomix;
+            case DJControllerControl.RightPad1:
+                return _rightPad1;
+            case DJControllerControl.RightPad2:
+                return _rightPad2;
+            case DJControllerControl.RightPad3:
+                return _rightPad3;
+            case DJControllerControl.RightPad4:
+                return _rightPad4;
+            case DJControllerControl.RightSync:
+                return _rightSync;
+            case DJControllerControl.RightCue:
+                return _rightCue;
+            case DJControllerControl.RightPausePlay:
+                return _rightPausePlay;
+            default:
+                return null;
         }
+    }
 
-        textButton.color = ColorManager.Instance.Blue;
-        textButton.fontStyle = FontStyles.Bold | FontStyles.Italic;
+    public void ChangeButtonState(DJControllerControl control, bool isActive)
+    {
+        TMP_Text textButton = GetButtonText(control);
+
+        if (textButton == null)
+            return;
+
+        if (isActive)
+        {
+            textButton.color = ColorManager.Instance.Blue;
+            textButton.font = _boldFont;
+            
+            if (control == DJControllerControl.Rec)
+            {
+                textButton.text = "Off";
+                textButton.color = ColorManager.Instance.Red;
+            }
+        }
+        else
+        {
+            textButton.color = ColorManager.Instance.MidBrown;
+            textButton.font = _regularFont;
+            
+            if (control == DJControllerControl.Rec)
+            {
+                textButton.text = "On";
+                textButton.color = ColorManager.Instance.Green;
+            }
+        }
     }
 
     public enum LogType
