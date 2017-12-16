@@ -1,5 +1,5 @@
 # TS-590S-Helper
-This is simple application that allows you to use the Hercules DJ Control Compact to control the Kenwood TS-590S transceiver
+This is simple application that allows you to use the Hercules DJ Control Compact to control the Kenwood TS-590S transceiver. This is inspired by a similar script written by [Patrick Egloff](http://www.egloff.eu).
 
 <img src="https://i.imgur.com/QLxO3Bo.gif" width="100%">
 
