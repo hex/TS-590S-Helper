@@ -46,6 +46,12 @@ public class AppManager : Singleton<AppManager>
 {
     public Configuration Configuration = new Configuration();
     public Section Settings;
+    public bool IsEditControlsActive = false;
+    public UIControlEditor ControlEditor;
+
+    [Header("Fonts")] 
+    public TMP_FontAsset RegularFont;
+    public TMP_FontAsset BoldFont;
 
     private const string MidiControllerStringId = "DJControl Compact";
 
@@ -63,43 +69,42 @@ public class AppManager : Singleton<AppManager>
     [SerializeField] private Image _leftBassJog;
     [SerializeField] private Image _rightMediumJog;
     [SerializeField] private Image _rightBassJog;
-    
+
     // XFader
     [SerializeField] private Slider _xFaderSlider;
 
     // Text Buttons
-    [Header("Buttons Text")] [SerializeField] private TMP_Text _leftSync;
+    [Header("Buttons Text")] [SerializeField] private UIControl _leftSync;
 
-    [SerializeField] private TMP_Text _leftCue;
-    [SerializeField] private TMP_Text _leftPausePlay;
-    [SerializeField] private TMP_Text _rec;
-    [SerializeField] private TMP_Text _leftPad1;
-    [SerializeField] private TMP_Text _leftPad2;
-    [SerializeField] private TMP_Text _leftPad3;
-    [SerializeField] private TMP_Text _leftPad4;
-    [SerializeField] private TMP_Text _scratchAtomix;
-    [SerializeField] private TMP_Text _rightPad1;
-    [SerializeField] private TMP_Text _rightPad2;
-    [SerializeField] private TMP_Text _rightPad3;
-    [SerializeField] private TMP_Text _rightPad4;
-    [SerializeField] private TMP_Text _rightSync;
-    [SerializeField] private TMP_Text _rightCue;
-    [SerializeField] private TMP_Text _rightPausePlay;
+    [SerializeField] private UIControl _leftCue;
+    [SerializeField] private UIControl _leftPausePlay;
+    [SerializeField] private UIControl _rec;
+    [SerializeField] private UIControl _leftPad1;
+    [SerializeField] private UIControl _leftPad2;
+    [SerializeField] private UIControl _leftPad3;
+    [SerializeField] private UIControl _leftPad4;
+    [SerializeField] private UIControl _scratchAtomix;
+    [SerializeField] private UIControl _rightPad1;
+    [SerializeField] private UIControl _rightPad2;
+    [SerializeField] private UIControl _rightPad3;
+    [SerializeField] private UIControl _rightPad4;
+    [SerializeField] private UIControl _rightSync;
+    [SerializeField] private UIControl _rightCue;
+    [SerializeField] private UIControl _rightPausePlay;
 
-    [Header("Misc stuff")] [SerializeField] private TMP_FontAsset _regularFont;
-    [SerializeField] private TMP_FontAsset _boldFont;
-    [SerializeField] private TMP_Text _logLines;
+    [Header("Misc stuff")] [SerializeField] private TMP_Text _logLines;
     [SerializeField] private string[] _logQueue = new string[3];
     [SerializeField] private UIStatusBoxes _statusBoxes;
+    
 
     protected override void Awake()
     {
         base.Awake();
-        
+
         PlayerPrefs.DeleteAll();
         Application.targetFrameRate = 30;
         DOTween.Init();
-
+        
         LoadOrCreateConfig();
     }
 
@@ -110,7 +115,7 @@ public class AppManager : Singleton<AppManager>
 
     public void Refresh()
     {
-       _statusBoxes.CheckBoxes();
+        _statusBoxes.CheckBoxes();
     }
 
     private void LoadOrCreateConfig()
@@ -118,13 +123,13 @@ public class AppManager : Singleton<AppManager>
         if (File.Exists("config.ini"))
         {
             Log.Info("Loading settings from file");
-            AppManager.Instance.PushToLog("Loading settings from config.ini");
-            Configuration = SharpConfig.Configuration.LoadFromFile("config.ini");
+            PushToLog("Loading settings from config.ini");
+            Configuration = Configuration.LoadFromFile("config.ini");
         }
         else
         {
             Log.Info("No settings file found. Creating one...");
-            AppManager.Instance.PushToLog("No settings file found. Creating one...");
+            PushToLog("No settings file found. Creating one...");
 
             Configuration["Settings"]["Enable Remote"].BoolValue = true;
             Configuration["Settings"]["Remote Host"].StringValue = "127.0.0.1";
@@ -210,7 +215,7 @@ public class AppManager : Singleton<AppManager>
         }
     }
 
-    TMP_Text GetButtonText(DJControllerControl control)
+    UIControl GetButtonText(DJControllerControl control)
     {
         switch (control)
         {
@@ -253,32 +258,15 @@ public class AppManager : Singleton<AppManager>
 
     public void ChangeButtonState(DJControllerControl control, bool isActive)
     {
-        TMP_Text textButton = GetButtonText(control);
-
-        if (textButton == null)
-            return;
+        var uiControl = GetButtonText(control);
 
         if (isActive)
         {
-            textButton.color = ColorManager.Instance.Blue;
-            textButton.font = _boldFont;
-            
-            if (control == DJControllerControl.Rec)
-            {
-                textButton.text = "Off";
-                textButton.color = ColorManager.Instance.Red;
-            }
+            uiControl.SetPressed();
         }
         else
         {
-            textButton.color = ColorManager.Instance.MidBrown;
-            textButton.font = _regularFont;
-            
-            if (control == DJControllerControl.Rec)
-            {
-                textButton.text = "On";
-                textButton.color = ColorManager.Instance.Green;
-            }
+            uiControl.SetNormal();
         }
     }
 

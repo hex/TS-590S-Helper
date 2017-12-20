@@ -45,6 +45,13 @@ public class UIStatusBoxes : MonoBehaviour
 
     private void UpdateComPortStatusBox()
     {
+        StartCoroutine(IUpdateComPortStatusBox());
+    }
+
+    private IEnumerator IUpdateComPortStatusBox()
+    {
+        yield return new WaitForEndOfFrame();
+
         var status = SerialManager.Instance.checkOpen();
 
         Debug.Log("Serial status box changed: " + status);
@@ -63,7 +70,7 @@ public class UIStatusBoxes : MonoBehaviour
         }
     }
 
-    IEnumerator IUpdateRemoteStatus()
+    private IEnumerator IUpdateRemoteStatus()
     {
         TCPManager.Instance.SetupSocket(
             AppManager.Instance.Settings["Remote Host"].StringValue,

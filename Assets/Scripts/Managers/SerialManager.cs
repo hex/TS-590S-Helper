@@ -406,6 +406,7 @@ public class SerialManager : Singleton<SerialManager>
         if (checkOpen())
         {
             Log.Info("<color=red><b>Send to Radio: " + message + "</b></color>");
+            AppManager.Instance.PushToLog("Send to transciever: " + message, AppManager.LogType.Info);
             s_serial.Write(message);
         }
     }
@@ -447,7 +448,7 @@ public class SerialManager : Singleton<SerialManager>
 
             if (portName == "")
             {
-                print("Error: Couldn't find serial port.");
+                Log.Error("Error: Couldn't find serial port.");
                 status = Status.Closed;
                 return false;
             }
@@ -469,6 +470,7 @@ public class SerialManager : Singleton<SerialManager>
             }
             catch (Exception ex)
             {
+                s_serial = null;
                 Debug.LogException(ex);
             }
         }

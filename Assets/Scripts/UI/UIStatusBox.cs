@@ -29,7 +29,6 @@ public class UIStatusBox : StateKitLite<StatusBoxState>
     private void Start()
     {
         initialState = StatusBoxState.Disabled;
-        AnimateLoading();
     }
 
     private void AnimateLoading()
@@ -45,6 +44,7 @@ public class UIStatusBox : StateKitLite<StatusBoxState>
 
     private void Active_Enter()
     {
+        AnimateLoading();
         _statusText.color = ColorManager.Instance.Green;
         var successText = "";
 
